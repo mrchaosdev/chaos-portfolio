@@ -8,12 +8,12 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Chaosdev — Web2 Fullstack & Web3 Frontend",
+  title: "Chaosdev — Fullstack & Web3 Engineer",
   description:
-    "Portfolio of Chaosdev — a Web2 fullstack and Web3 frontend developer translating on-chain complexity into usable product experiences.",
+    "Portfolio of Chaosdev — fullstack and Web3 engineer building useful, expressive digital products.",
   openGraph: {
-    title: "Chaosdev — Web3 to Web2 Product Layer",
-    description: "Web2 fullstack systems, Web3 frontend flows, and motion-led product experiences.",
+    title: "Chaosdev — Beyond the interface",
+    description: "Fullstack systems, Web3 products, and motion-led experiences.",
     images: ["/chaos-avatar.jpg"],
   },
 };

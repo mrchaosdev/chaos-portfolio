@@ -15,8 +15,6 @@ interface EvilEyeProps {
   pupilFollow?: number;
   flameSpeed?: number;
   backgroundColor?: string;
-  followMode?: 'local' | 'viewport';
-  className?: string;
 }
 
 function hexToVec3(hex: string): [number, number, number] {
@@ -181,9 +179,7 @@ export default function EvilEye({
   noiseScale = 1.0,
   pupilFollow = 1.0,
   flameSpeed = 1.0,
-  backgroundColor = '#000000',
-  followMode = 'local',
-  className = ''
+  backgroundColor = '#000000'
 }: EvilEyeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -209,34 +205,19 @@ export default function EvilEye({
 
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
 
-    function updatePointerTarget(clientX: number, clientY: number) {
-      const rect =
-        followMode === 'viewport'
-          ? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
-          : container.getBoundingClientRect();
-      const width = Math.max(rect.width, 1);
-      const height = Math.max(rect.height, 1);
-
-      mouse.tx = ((clientX - rect.left) / width) * 2 - 1;
-      mouse.ty = -(((clientY - rect.top) / height) * 2 - 1);
+    function onMouseMove(e: MouseEvent) {
+      const rect = container.getBoundingClientRect();
+      mouse.tx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.ty = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
     }
 
-    const onPointerMove: EventListener = (event) => {
-      const e = event as PointerEvent;
-      updatePointerTarget(e.clientX, e.clientY);
-    };
-
-    function resetPointerTarget() {
+    function onMouseLeave() {
       mouse.tx = 0;
       mouse.ty = 0;
     }
 
-    const pointerTarget = followMode === 'viewport' ? window : container;
-    pointerTarget.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('blur', resetPointerTarget);
-    if (followMode === 'local') {
-      container.addEventListener('pointerleave', resetPointerTarget);
-    }
+    container.addEventListener('mousemove', onMouseMove);
+    container.addEventListener('mouseleave', onMouseLeave);
 
     function resize() {
       renderer.setSize(container.offsetWidth, container.offsetHeight);
@@ -286,13 +267,12 @@ export default function EvilEye({
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', resize);
-      pointerTarget.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('blur', resetPointerTarget);
-      container.removeEventListener('pointerleave', resetPointerTarget);
+      container.removeEventListener('mousemove', onMouseMove);
+      container.removeEventListener('mouseleave', onMouseLeave);
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [eyeColor, intensity, pupilSize, irisWidth, glowIntensity, scale, noiseScale, pupilFollow, flameSpeed, backgroundColor, followMode]);
+  }, [eyeColor, intensity, pupilSize, irisWidth, glowIntensity, scale, noiseScale, pupilFollow, flameSpeed, backgroundColor]);
 
-  return <div ref={containerRef} className={`evil-eye-container ${className}`.trim()} aria-hidden="true" />;
+  return <div ref={containerRef} className="evil-eye-container" aria-hidden="true" />;
 }

@@ -5,53 +5,83 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { BrandOrbs } from "@designcodeio/threeui/components/BrandOrbs";
 import { RibbonFieldBackground } from "@designcodeio/threeui/components/RibbonFieldBackground";
 import EvilEye from "@/components/EvilEye";
 import {
   ArrowDown,
   ArrowDownRight,
   ArrowUpRight,
+  Blocks,
   Check,
   Code2,
   Copy,
+  Database,
   Globe2,
   Layers3,
   Menu,
-  Moon,
   Pause,
   Play,
-  Sun,
+  ServerCog,
   X,
 } from "lucide-react";
-import { contactLinks } from "@/components/data";
+import { contactLinks, langLoopItems, libLoopItems } from "@/components/data";
 import SelectedWork from "@/components/SelectedWork";
+import { StackIcon } from "@/components/ui/StackIcon";
+import Web3Orbit from "@/components/Web3Orbit";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const expertise = [
+const web2Expertise = [
   {
     icon: Code2,
-    title: "Interfaces that feel right.",
+    title: "Interfaces people understand.",
     label: "01 / FRONTEND",
-    copy: "Responsive web applications with clear interactions, thoughtful motion and attention to the details.",
+    copy: "Accessible, responsive product interfaces with predictable interactions and the details users rely on.",
     stack: ["React", "Next.js", "TypeScript"],
   },
   {
-    icon: Layers3,
-    title: "Evidence before answers.",
-    label: "02 / DATA & AI",
-    copy: "Typed data flows, calculated indicators and AI explanations that stay connected to their source. Built into products you can inspect.",
-    stack: ["Next.js", "AI SDK", "PostgreSQL"],
+    icon: ServerCog,
+    title: "Backends built for real work.",
+    label: "02 / SYSTEMS",
+    copy: "Typed APIs, durable data models and admin workflows that remain understandable as the product grows.",
+    stack: [".NET 8", "Node.js", "PostgreSQL"],
   },
+  {
+    icon: Database,
+    title: "From data to shipped product.",
+    label: "03 / DELIVERY",
+    copy: "Data, deployment and product decisions joined into one practical system—not a pile of disconnected features.",
+    stack: ["PostgreSQL", "Vercel", "i18next"],
+  },
+];
+
+const web3Expertise = [
   {
     icon: Globe2,
     title: "On-chain. Human-first.",
-    label: "03 / WEB3",
-    copy: "Wallet connections, payment requests and onchain research, with clear transaction states and evidence the user can follow.",
-    stack: ["wagmi", "RainbowKit", "Nansen"],
+    label: "01 / WALLET UX",
+    copy: "Wallet connections, signatures and transaction states translated into actions people can understand and trust.",
+    stack: ["wagmi", "WalletConnect", "Ethereum"],
+  },
+  {
+    icon: Layers3,
+    title: "Evidence before narrative.",
+    label: "02 / ONCHAIN DATA",
+    copy: "Protocol and market signals connected to inspectable evidence, with risk and confidence kept visible.",
+    stack: ["Nansen", "PostgreSQL", "AI SDK"],
+  },
+  {
+    icon: Blocks,
+    title: "Protocol complexity, product clarity.",
+    label: "03 / WEB3 FRONTEND",
+    copy: "Fast, expressive interfaces that preserve what is powerful about Web3 without exposing every rough edge.",
+    stack: ["Next.js", "Solidity", "IPFS"],
   },
 ];
+
+const web2Stack = [".NET 8", "PostgreSQL", "React", "Next.js", "TypeScript", "Node.js", "Python", "Tailwind", "i18next", "Socket.IO", "Vercel"];
+const web3Stack = ["Ethereum", "Solidity", "wagmi", "WalletConnect", "IPFS", "React", "Next.js", "TypeScript", "GSAP", "WebGL", "Three.js", "AI"];
+const completeStack = Array.from(new Set([...langLoopItems, ...libLoopItems, "i18next", "Socket.IO"]));
 
 function FlowPattern({ className = "" }: { className?: string }) {
   return (
@@ -75,7 +105,7 @@ function FlowPattern({ className = "" }: { className?: string }) {
   );
 }
 
-function Portrait() {
+function Portrait({ dark }: { dark: boolean }) {
   return (
     <div className="identity-world">
       <div className="identity-watermark" aria-hidden="true">
@@ -84,20 +114,20 @@ function Portrait() {
       <div className="portrait-halo" aria-hidden="true">
         <span className="halo-satellite" />
       </div>
-      <div className="portrait-cutout">
-        <Image src="/chaos-avatar-cutout.png" alt="Chaos — purple cyberpunk portrait with cyan-lit dreadlocks and an ivory coat" fill priority sizes="(max-width: 760px) 100vw, 55vw" />
+      <div className={`portrait-cutout ${dark ? "portrait-web3" : "portrait-web2"}`}>
+        <Image src={dark ? "/chaos-avatar-depth-cutout.png" : "/chaos-avatar-cutout.png"} alt="Chaos — developer and maker" fill priority sizes="(max-width: 760px) 100vw, 55vw" />
       </div>
       <span className="portrait-spark spark-one" aria-hidden="true">✳</span>
       <span className="portrait-spark spark-two" aria-hidden="true">+</span>
       <div className="identity-label label-top">
         <i />
         <span>
-          THE PERSON BEHIND THE PIXELS<strong>CHAOS / DEVELOPER & MAKER</strong>
+          {dark ? "PROTOCOLS INTO PRODUCTS" : "SYSTEMS INTO PRODUCTS"}<strong>{dark ? "WEB3 / FRONTEND & ONCHAIN UX" : "WEB2 / FULLSTACK PRODUCT ENGINEERING"}</strong>
         </span>
       </div>
       <div className="identity-label label-bottom">
         <span>
-          A LITTLE CHAOS.<strong>A LOT OF INTENTION.</strong>
+          {dark ? "ONCHAIN SIGNAL." : "PRODUCT CLARITY."}<strong>{dark ? "WITHOUT THE NOISE." : "BACKED BY SOLID SYSTEMS."}</strong>
         </span>
         <span className="identity-cross">+</span>
       </div>
@@ -139,6 +169,7 @@ export default function Home() {
   }, []);
   useEffect(() => {
     document.documentElement.dataset.appearance = dark ? "dark" : "light";
+    document.documentElement.dataset.world = dark ? "web3" : "web2";
   }, [dark]);
   useEffect(() => {
     document.documentElement.dataset.motion = paused ? "paused" : "playing";
@@ -215,10 +246,13 @@ export default function Home() {
     if (copyTimer.current) clearTimeout(copyTimer.current);
     copyTimer.current = setTimeout(() => setCopyState(""), 3500);
   };
+  const activeStack = dark ? web3Stack : web2Stack;
+  const bridgeStack = completeStack.filter((item) => !activeStack.some((active) => active.toLowerCase() === item.toLowerCase()));
+  const expertise = dark ? web3Expertise : web2Expertise;
 
   return (
-    <div className="studio" ref={root}>
-      <div className="page-eye-bg" aria-hidden="true">
+    <div className={`studio ${dark ? "web3-world" : "web2-world"}`} ref={root}>
+      {dark && <div className="page-eye-bg" aria-hidden="true">
         <EvilEye
           eyeColor="#8b5cff"
           intensity={1.52}
@@ -229,169 +263,161 @@ export default function Home() {
           noiseScale={1.25}
           pupilFollow={1.15}
           flameSpeed={0.55}
-          backgroundColor={dark ? "#05020b" : "#f4f2fb"}
-          light={!dark}
+          backgroundColor="#05020b"
+          light={false}
           followMode="viewport"
           paused={paused}
         />
-      </div>
+      </div>}
       <a href="#main" className="skip-link">
         Skip to content
       </a>
-      <header className="studio-nav wrap">
-        <a className="studio-brand" href="#top" aria-label="Chaosdev home">
-          <span className="brand-flower">◉</span> CHAOS
-          <span className="brand-dev">{"//DEV"}</span>
-        </a>
-        <nav
-          id="primary-navigation"
-          className={menu ? "studio-links is-open" : "studio-links"}
-          aria-label="Main navigation"
-        >
-          <a href="#work" onClick={() => setMenu(false)}>
-            Work <span>01</span>
+      <header className="studio-nav-shell">
+        <div className="studio-nav wrap">
+          <a className="studio-brand" href="#top" aria-label="Chaosdev home">
+            <span className="brand-mark" aria-hidden="true">
+              <Image src="/chaos-mark.png" alt="" width={48} height={48} priority />
+            </span>
+            <span className="brand-copy">
+              <b>CHAOS</b>
+              <small>{dark ? "PROTOCOL STUDIO" : "PRODUCT STUDIO"}</small>
+            </span>
           </a>
-          <a href="#about" onClick={() => setMenu(false)}>
-            About <span>02</span>
-          </a>
-          <a href="#contact" onClick={() => setMenu(false)}>
-            Contact <ArrowUpRight size={14} />
-          </a>
-        </nav>
-        <div className="nav-tools">
-          <span className="nav-location">WEB3 · AI · CREATIVE DEVELOPMENT</span>
-          <button
-            className="icon-button motion-toggle"
-            onClick={() => setPaused(!paused)}
-            aria-label={paused ? "Resume animations" : "Pause animations"}
+          <nav
+            id="primary-navigation"
+            className={menu ? "studio-links is-open" : "studio-links"}
+            aria-label="Main navigation"
           >
-            {paused ? <Play size={15} /> : <Pause size={15} />}
-          </button>
-          <button
-            className="icon-button"
-            onClick={toggleTheme}
-            aria-label={`Switch to ${dark ? "light" : "dark"} theme`}
-          >
-            {dark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-          <button
-            className="icon-button mobile-menu"
-            onClick={() => setMenu(!menu)}
-            aria-controls="primary-navigation"
-            aria-expanded={menu}
-            aria-label={menu ? "Close menu" : "Open menu"}
-          >
-            {menu ? <X size={20} /> : <Menu size={20} />}
-          </button>
+            <a href="#work" onClick={() => setMenu(false)}><span>01</span>Work</a>
+            <a href="#about" onClick={() => setMenu(false)}><span>02</span>About</a>
+            <a href="#stack" onClick={() => setMenu(false)}><span>03</span>Stack</a>
+            <a href="#contact" onClick={() => setMenu(false)}><span>04</span>Contact</a>
+          </nav>
+          <div className="nav-tools">
+            <span className="nav-status">
+              <i />
+              <span><small>CURRENT MODE</small>{dark ? "WEB3 / ONCHAIN" : "WEB2 / FULLSTACK"}</span>
+            </span>
+            <div className="nav-controls">
+              <button
+                className="icon-button motion-toggle"
+                onClick={() => setPaused(!paused)}
+                aria-label={paused ? "Resume animations" : "Pause animations"}
+              >
+                {paused ? <Play size={14} /> : <Pause size={14} />}
+              </button>
+              <button
+                className={`world-toggle ${dark ? "is-web3" : "is-web2"}`}
+                onClick={toggleTheme}
+                aria-label={`Switch to ${dark ? "Web2 light" : "Web3 dark"} theme`}
+              >
+                <span className="world-toggle-option">WEB2</span>
+                <span className="world-toggle-option">WEB3</span>
+                <span className="world-toggle-thumb" aria-hidden="true" />
+              </button>
+              <button
+                className="icon-button mobile-menu"
+                onClick={() => setMenu(!menu)}
+                aria-controls="primary-navigation"
+                aria-expanded={menu}
+                aria-label={menu ? "Close menu" : "Open menu"}
+              >
+                {menu ? <X size={19} /> : <Menu size={19} />}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
       <main id="main">
         <section className="studio-hero wrap" id="top">
           <div className="hero-text">
             <div className="eyebrow">
-              <span className="signal-dot" /> CHAOS / DEVELOPER & MAKER
+              <span className="signal-dot" /> {dark ? "WEB3 / FRONTEND & ONCHAIN UX" : "WEB2 / FULLSTACK PRODUCT ENGINEER"}
             </div>
             <h1>
               <span className="headline-line">
-                <span>A LITTLE</span>
+                <span>{dark ? "WEB3." : "WEB2."}</span>
               </span>
               <span className="headline-line">
-                <span>CHAOS.</span>
+                <span>{dark ? "OWN THE" : "BUILT"}</span>
               </span>
               <span className="headline-line headline-accent">
-                <span>A LOT</span>
+                <span>{dark ? "CHAIN." : "CLEAR."}</span>
               </span>
               <span className="headline-line">
                 <span>
-                  OF CRAFT<span className="headline-period">.</span>
+                  {dark ? "LOSE THE FRICTION" : "MADE TO LAST"}<span className="headline-period">.</span>
                 </span>
               </span>
             </h1>
             <p className="hero-intro">
-              I’m <strong>Chaos.</strong> I turn curious ideas into things you can
-              open, explore and use.
+              {dark ? <>I build <strong>human-first Web3 interfaces</strong> for wallets, onchain data and payments—without hiding what matters.</> : <>I build <strong>clear, dependable Web2 products</strong> from interface to API and database.</>}
             </p>
             <p className="hero-detail">
-              Onchain products. AI research tools.
+              {dark ? "Wallet flows. Protocol dashboards. Onchain research." : "React & Next.js frontends. .NET APIs. PostgreSQL systems."}
               <br />
-              Playful interfaces, built with React & Next.js.
+              {dark ? "Made legible, responsive and ready to use." : "Built around real users and maintainable delivery."}
             </p>
             <div className="hero-buttons">
               <a className="studio-button primary" href="#work">
-                Explore my work <ArrowDownRight size={18} />
+                {dark ? "Explore Web3 work" : "Explore product work"} <ArrowDownRight size={18} />
               </a>
               <a className="plain-link" href={`mailto:${contactLinks.email}`}>
                 Let’s talk <ArrowUpRight size={17} />
               </a>
             </div>
             <div className="hero-footnote">
-              <span className="handwritten">Always a work in progress.</span>
+              <span className="handwritten">{dark ? "Protocol-native. Product-minded." : "Simple outside. Solid underneath."}</span>
               <span className="note-line" />
               <span className="tiny-label">
                 SCROLL TO EXPLORE <ArrowDown size={13} />
               </span>
             </div>
           </div>
-          <Portrait />
+          <Portrait dark={dark} />
         </section>
-        <div className="stack-strip wrap">
-          <span className="tiny-label">MY EVERYDAY TOOLKIT</span>
-          <div>
-            {[
-              "Next.js",
-              "React",
-              "TypeScript",
-              "Phaser",
-              "PostgreSQL",
-              "wagmi",
-            ].map((item) => (
-              <span key={item}>
-                {item === "React" && (
-                  <BrandOrbs
-                    variant="react"
-                    size="small"
-                    mode={dark ? "dark" : "light"}
-                    paused={paused}
-                    style={{
-                      width: 20,
-                      height: 20,
-                      border: 0,
-                      borderRadius: "50%",
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
-                {item}
+        <section className="stack-system wrap" id="stack">
+          <div className="stack-system-heading">
+            <span className="tiny-label">{dark ? "WEB3 / ACTIVE STACK" : "WEB2 / ACTIVE STACK"}</span>
+            <h2>{dark ? "Protocol tools up front." : "Product systems up front."}</h2>
+            <p>{dark ? "The chain-facing stack I use to turn protocols into usable products." : "The fullstack foundation I use for interfaces, APIs, data and delivery."}</p>
+          </div>
+          <div className="stack-primary">
+            {activeStack.map((item, index) => (
+              <span className="stack-chip" key={item}>
+                <i>{String(index + 1).padStart(2, "0")}</i>
+                <StackIcon name={item} />
+                <b>{item}</b>
               </span>
             ))}
           </div>
-          <span className="stack-flower">✳</span>
-        </div>
-        <SelectedWork />
+          <div className="stack-bridge">
+            <span>ALSO IN THE TOOLBOX</span>
+            <div>{bridgeStack.map((item) => <span key={item}><StackIcon name={item} />{item}</span>)}</div>
+          </div>
+        </section>
+        <SelectedWork dark={dark} />
         <section className="studio-about section-space" id="about">
           <div className="wrap about-grid">
-            <div className="about-art">
-              <FlowPattern />
-              <span className="about-art-label">COMPLEXITY, MEET CLARITY.</span>
-              <span className="about-art-plus">✳</span>
+            <div className={`about-art ${dark ? "web3-about-art" : "web2-about-art"}`}>
+              {dark ? <Web3Orbit paused={paused} /> : <FlowPattern />}
+              <span className="about-art-label">{dark ? "PROTOCOL, MEET PRODUCT." : "COMPLEXITY, MEET CLARITY."}</span>
+              {!dark && <span className="about-art-plus">✳</span>}
             </div>
             <div className="about-text">
               <span className="tiny-label">
-                02 / THE PERSON BEHIND THE PIXELS
+                02 / {dark ? "THE BUILDER BEHIND THE PROTOCOL UI" : "THE ENGINEER BEHIND THE PRODUCT"}
               </span>
               <h2>
-                Curious enough to try.
+                {dark ? "Onchain can feel new." : "Good products feel simple."}
                 <br />
-                <span>Patient enough to build.</span>
+                <span>{dark ? "It shouldn’t feel confusing." : "Strong systems make that possible."}</span>
               </h2>
               <p>
-                I’m Chaos — the developer behind ProofPulse, ChaosPay,
-                Chaos Market AI, Chaos UI and Dlicom Attack.
+                {dark ? "I’m Chaos — a Web3 frontend developer working across wallet UX, onchain research and crypto-native payments." : "I’m Chaos — a fullstack product engineer working from polished React interfaces through .NET APIs and PostgreSQL data."}
               </p>
               <p>
-                I move between onchain data, AI workflows and creative frontend
-                work. Sometimes that means making a payment flow easier to follow.
-                Sometimes it means building a game, just to see an idea come alive.
+                {dark ? "I translate signatures, chain state and protocol data into clear states and confident actions, while keeping the evidence visible." : "I care about the unglamorous parts too: maintainable architecture, admin flows, localization, deployment and the reliability a real product needs."}
               </p>
               <a
                 className="plain-link"
@@ -412,8 +438,8 @@ export default function Home() {
         </section>
         <section className="studio-expertise wrap section-space" id="expertise">
           <div className="section-eyebrow">
-            <span>03 / WHAT I BRING</span>
-            <span>FROM THE FIRST PIXEL TO THE LAST ENDPOINT</span>
+            <span>03 / {dark ? "WEB3 CAPABILITIES" : "WEB2 CAPABILITIES"}</span>
+            <span>{dark ? "FROM WALLET CONNECTION TO VERIFIED STATE" : "FROM THE FIRST PIXEL TO THE LAST ENDPOINT"}</span>
           </div>
           <div className="expertise-grid">
             {expertise.map(({ icon: Icon, title, label, copy, stack }) => (
@@ -441,10 +467,10 @@ export default function Home() {
             </div>
             <FlowPattern className="contact-pattern" />
             <span className="tiny-label">
-              04 / GOOD THINGS START WITH A CONVERSATION
+              04 / {dark ? "BUILD THE NEXT ONCHAIN EXPERIENCE" : "BUILD THE NEXT USEFUL PRODUCT"}
             </span>
             <h2>
-              Have something
+              {dark ? "Have a protocol" : "Have a product"}
               <br />
               in mind? <span>Let’s build it.</span>
             </h2>
@@ -480,9 +506,9 @@ export default function Home() {
         </section>
       </main>
       <footer className="studio-footer wrap">
-        <a className="studio-brand" href="#top">
-          <span className="brand-flower">✳</span> chaos
-          <span className="brand-dev">dev</span>
+        <a className="studio-brand footer-brand" href="#top" aria-label="Chaosdev home">
+          <span className="brand-mark" aria-hidden="true"><Image src="/chaos-mark.png" alt="" width={40} height={40} /></span>
+          <span className="brand-copy"><b>CHAOS</b><small>DEVELOPER / MAKER</small></span>
         </a>
         <span>© {new Date().getFullYear()} Chaosdev. Made with intention.</span>
         <div>

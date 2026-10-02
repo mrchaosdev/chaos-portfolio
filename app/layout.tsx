@@ -10,9 +10,9 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Chaos — Web3, AI & Creative Development",
+  title: "Chaos — Web2 Products & Web3 Interfaces",
   description:
-    "Selected work by Chaos: ProofPulse, ChaosPay, Chaos Market AI, Chaos UI and Dlicom Attack. Onchain products, AI research tools and playful interfaces.",
+    "Selected Web2 and Web3 work by Chaos: fullstack product systems, onchain interfaces, AI research tools and design engineering.",
   openGraph: {
     title: "Chaos — A little chaos. A lot of craft.",
     description: "Onchain products, AI research tools and playful interfaces. Explore the projects and the code behind them.",

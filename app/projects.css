@@ -30,6 +30,7 @@
 .project-story h3 a { display:flex; align-items:center; justify-content:space-between; }
 .project-story h3 svg { color:var(--accent); }
 .project-story-body>p { font-size:14px; line-height:1.8; color:var(--muted); max-width:510px; min-height:76px; }
+.project-focus { display:block; margin:-3px 0 12px; color:var(--ink); font:500 10px/1.55 var(--mono); letter-spacing:.015em; }
 .project-technologies { display:flex; flex-wrap:wrap; gap:7px; margin-top:18px; }
 .project-technologies span { font:10px var(--mono); border:1px solid var(--line); border-radius:5px; padding:6px 9px; background:color-mix(in srgb,var(--surface) 60%,transparent); }
 .project-links { display:flex; gap:24px; margin-top:21px; padding-top:17px; border-top:1px solid var(--line); }
@@ -62,3 +63,43 @@
 }
 @media(prefers-reduced-motion:reduce) { .project-screen,.project-capture img,.project-visit { transition:none; }.project-screen:hover img { transform:none; } }
 html[data-motion="paused"] .project-capture img { transition:none; }
+
+/* Project presentation follows the selected world instead of recoloring one generic grid. */
+.web2-work .project-spotlight {
+  border-radius: 14px;
+  border-color: #b9cef5;
+  border-left: 4px solid #2563eb;
+  background: linear-gradient(115deg, #ffffff 0%, #f4f8ff 100%);
+  box-shadow: 0 20px 60px #1e3a8a0c;
+}
+.web2-work .project-screen { border-radius: 9px; border-color: #cad7e8; box-shadow: 0 12px 35px #0f172a0b; }
+.web2-work .project-browser { background: #f8fafc; }
+.web2-work .project-technologies span { border-radius: 3px; background: #f8fafc; }
+.web2-work .project-focus { color: #1d4ed8; }
+.web2-work .repo-index { background: #ffffff73; padding-inline: 18px; border: 1px solid #d9e2ef; border-radius: 10px; }
+
+.web3-work .project-spotlight {
+  border-color: #583678;
+  background: linear-gradient(135deg, #160a24e8, #08040ee8);
+  box-shadow: inset 0 1px #ffffff09, 0 30px 90px #0004;
+}
+.web3-work .project-screen { border-color: #3b2750; background: #09040f; box-shadow: 0 18px 50px #0005; }
+.web3-work .project-screen:hover { border-color: #a879ff; box-shadow: 0 0 0 1px #a879ff22, 0 20px 60px #4c1d9533; }
+.web3-work .project-browser { background: #0b0612; border-color: #2f1d43; }
+.web3-work .project-capture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 55px #05020b59;
+  background: linear-gradient(135deg, #7c3aed0c, transparent 45%, #06b6d40a);
+}
+.web3-work .project-focus { color: #c4a7ff; }
+.web3-work .project-technologies span { background: #100819b8; border-color: #3c2752; }
+.web3-work .repo-index { border-color: #39264e; }
+
+@media(max-width:760px) {
+  .project-focus { font-size:9px; }
+  .web2-work .project-spotlight { border-left-width:1px; }
+  .web2-work .repo-index { padding-inline:14px; }
+}

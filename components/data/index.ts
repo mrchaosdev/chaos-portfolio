@@ -21,7 +21,25 @@ export const protocolProps = [
   { name: "mode", value: '"web3 -> web2 translation"', tone: "pink" },
 ];
 
-export const projects = [
+export type Project = {
+  index: string;
+  name: string;
+  type: string;
+  summary: string;
+  stack: string[];
+  href?: string;
+  live: string;
+  image: string;
+  imageAlt: string;
+  focus: string;
+  details: string[];
+  tone: string;
+  visual: string;
+  metric: string;
+  featured?: boolean;
+};
+
+export const web3Projects: Project[] = [
   {
     index: "01",
     name: "ProofPulse",
@@ -71,24 +89,64 @@ export const projects = [
     visual: "radar",
     metric: "READ-ONLY AGENT",
   },
+];
+
+export const web2Projects: Project[] = [
   {
-    index: "04",
+    index: "01",
+    name: "LFGTM",
+    type: "BRAND / LAUNCH PLATFORM",
+    summary: "A high-energy launch site for a six-week go-to-market sprint, built to turn a distinct brand system into a fast, direct conversion journey.",
+    stack: ["Next.js", "TypeScript", "Responsive UI"],
+    live: "https://lfg-eight-psi.vercel.app/",
+    image: "/projects/lfg.png",
+    imageAlt: "LFGTM pre-raise launch studio homepage with bold black typography and blue and orange diagonal lines",
+    focus: "Brand character → clear offer → focused conversion",
+    details: ["Responsive campaign experience", "Strong editorial brand system", "Clear offer and conversion paths"],
+    tone: "blue",
+    visual: "dashboard",
+    metric: "GTM / SIX WEEKS",
+    featured: true,
+  },
+  {
+    index: "02",
     name: "Chaos UI",
     type: "DESIGN ENGINEERING",
-    summary: "My own collection of React components, backgrounds and motion experiments. Explore the preview, inspect the source and compose an interface.",
-    stack: ["React", "Motion", "GSAP"],
+    summary: "A personal React component library for motion, backgrounds, sections and reusable interface experiments.",
+    stack: ["React", "TypeScript", "GSAP"],
     href: "https://github.com/mrchaosdev/React",
     live: "https://reactui-gray.vercel.app",
     image: "/projects/chaos-ui.png",
-    imageAlt: "Chaos UI live component library with motion previews and a component gallery",
-    focus: "Small experiments. Reusable building blocks.",
-    details: ["Components, sections & templates", "Interactive previews & source"],
-    tone: "lime",
+    imageAlt: "Chaos UI component library with a gradient hero and component registry preview",
+    focus: "Experiments shaped into reusable building blocks",
+    details: ["75+ interface components", "Interactive previews and source"],
+    tone: "violet",
     visual: "dashboard",
     metric: "COMPONENT LIBRARY",
   },
   {
-    index: "05",
+    index: "03",
+    name: "ZWCAD Vietnam",
+    type: "ENTERPRISE / COMMERCE",
+    summary: "A multilingual product and content platform for an enterprise CAD distributor, covering product discovery, industry solutions and lead generation.",
+    stack: ["React", ".NET 8", "PostgreSQL", "i18next"],
+    href: "https://github.com/TuanChao/landingPage",
+    live: "https://zwcadvietnam.com.vn/",
+    image: "/projects/zwcad.png",
+    imageAlt: "ZWCAD Vietnam homepage showing a CAD workstation and industrial model",
+    focus: "Complex catalogue → clear discovery → qualified lead",
+    details: ["Multilingual product catalogue", "CMS-backed business content", "Enterprise lead flows"],
+    tone: "cyan",
+    visual: "dashboard",
+    metric: "API + CMS",
+  },
+];
+
+export const projects = web3Projects;
+
+export const archiveProjects: Project[] = [
+  {
+    index: "04",
     name: "Dlicom Attack",
     type: "GAME / INTERACTIVE",
     summary: "A browser auto-battle roguelite. Build your Dili, draft skills and fight through four chapters of a corrupted social network.",
@@ -98,7 +156,7 @@ export const projects = [
     image: "/projects/dlicom.png",
     imageAlt: "Dlicom Attack live game homepage featuring Dili and the first playable chapter",
     focus: "A small hero with unreasonable firepower",
-    details: ["Skill drafting & seeded combat", "Four playable chapters"],
+    details: ["Skill drafting and seeded combat", "Four playable chapters"],
     tone: "violet",
     visual: "game",
     metric: "BROWSER GAME",

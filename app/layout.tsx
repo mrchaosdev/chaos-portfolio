@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./cinematic.css";
+import "./projects.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
   ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "http://localhost:3000");
+    : "https://chaos-portfolio-phi.vercel.app");
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Chaosdev — Web2 Fullstack & Web3 Frontend",
+  title: "Chaos — Web3, AI & Creative Development",
   description:
-    "Portfolio of Chaosdev — a Web2 fullstack and Web3 frontend developer translating on-chain complexity into usable product experiences.",
+    "Selected work by Chaos: ProofPulse, ChaosPay, Chaos Market AI, Chaos UI and Dlicom Attack. Onchain products, AI research tools and playful interfaces.",
   openGraph: {
-    title: "Chaosdev — Web3 to Web2 Product Layer",
-    description: "Web2 fullstack systems, Web3 frontend flows, and motion-led product experiences.",
-    images: ["/chaos-avatar.jpg"],
+    title: "Chaos — A little chaos. A lot of craft.",
+    description: "Onchain products, AI research tools and playful interfaces. Explore the projects and the code behind them.",
+    images: [{ url: "/chaos-avatar-3d.png", alt: "Chaosdev — Light Studio" }],
   },
 };
 

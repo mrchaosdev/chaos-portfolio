@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Renderer, Program, Mesh, Triangle, Texture } from 'ogl';
-import { useEffect, useRef } from 'react';
-import './EvilEye.css';
+import { Renderer, Program, Mesh, Triangle, Texture } from "ogl";
+import { useEffect, useRef } from "react";
+import "./EvilEye.css";
 
 interface EvilEyeProps {
   eyeColor?: string;
@@ -15,16 +15,18 @@ interface EvilEyeProps {
   pupilFollow?: number;
   flameSpeed?: number;
   backgroundColor?: string;
-  followMode?: 'local' | 'viewport';
+  followMode?: "local" | "viewport";
   className?: string;
+  paused?: boolean;
+  light?: boolean;
 }
 
 function hexToVec3(hex: string): [number, number, number] {
-  const h = hex.replace('#', '');
+  const h = hex.replace("#", "");
   return [
     parseInt(h.slice(0, 2), 16) / 255,
     parseInt(h.slice(2, 4), 16) / 255,
-    parseInt(h.slice(4, 6), 16) / 255
+    parseInt(h.slice(4, 6), 16) / 255,
   ];
 }
 
@@ -49,7 +51,12 @@ function generateNoiseTexture(size = 256): Uint8Array {
     const v10 = hash((((ix + 1) % w) + w) % w, ((iy % w) + w) % w, seed);
     const v01 = hash(((ix % w) + w) % w, (((iy + 1) % w) + w) % w, seed);
     const v11 = hash((((ix + 1) % w) + w) % w, (((iy + 1) % w) + w) % w, seed);
-    return v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
+    return (
+      v00 * (1 - tx) * (1 - ty) +
+      v10 * tx * (1 - ty) +
+      v01 * (1 - tx) * ty +
+      v11 * tx * ty
+    );
   }
 
   for (let y = 0; y < size; y++) {
@@ -105,6 +112,7 @@ uniform float uPupilFollow;
 uniform float uFlameSpeed;
 uniform vec3 uEyeColor;
 uniform vec3 uBgColor;
+uniform float uLight;
 
 void main() {
   vec2 uv = (gl_FragCoord.xy * 2.0 - uResolution.xy) / uResolution.y;
@@ -166,13 +174,18 @@ void main() {
 
   vec3 color = uEyeColor * uIntensity * clamp(max(innerRing + innerEye, outerEyeGlow + outerBgGlow) - pupil, 0.0, 3.0);
   color += uBgColor;
+  if (uLight > 0.5) {
+    float iris = clamp(max(innerRing + innerEye, outerEyeGlow + outerBgGlow), 0.0, 2.0);
+    color = mix(uBgColor, uEyeColor, clamp(iris * 0.42, 0.0, 0.75));
+    color = mix(color, uEyeColor * 0.4, clamp(pupil * 0.65, 0.0, 0.8));
+  }
 
   gl_FragColor = vec4(color, 1.0);
 }
 `;
 
 export default function EvilEye({
-  eyeColor = '#FF6F37',
+  eyeColor = "#FF6F37",
   intensity = 1.5,
   pupilSize = 0.6,
   irisWidth = 0.25,
@@ -181,16 +194,27 @@ export default function EvilEye({
   noiseScale = 1.0,
   pupilFollow = 1.0,
   flameSpeed = 1.0,
-  backgroundColor = '#000000',
-  followMode = 'local',
-  className = ''
+  backgroundColor = "#000000",
+  followMode = "local",
+  className = "",
+  paused = false,
+  light = false,
 }: EvilEyeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
-    const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
+    let renderer: Renderer;
+    try {
+      renderer = new Renderer({
+        alpha: true,
+        premultipliedAlpha: false,
+        dpr: 1,
+      });
+    } catch {
+      return;
+    }
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
 
@@ -211,8 +235,13 @@ export default function EvilEye({
 
     function updatePointerTarget(clientX: number, clientY: number) {
       const rect =
-        followMode === 'viewport'
-          ? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
+        followMode === "viewport"
+          ? {
+              left: 0,
+              top: 0,
+              width: window.innerWidth,
+              height: window.innerHeight,
+            }
           : container.getBoundingClientRect();
       const width = Math.max(rect.width, 1);
       const height = Math.max(rect.height, 1);
@@ -231,16 +260,27 @@ export default function EvilEye({
       mouse.ty = 0;
     }
 
-    const pointerTarget = followMode === 'viewport' ? window : container;
-    pointerTarget.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('blur', resetPointerTarget);
-    if (followMode === 'local') {
-      container.addEventListener('pointerleave', resetPointerTarget);
+    const pointerTarget = followMode === "viewport" ? window : container;
+    pointerTarget.addEventListener("pointermove", onPointerMove, {
+      passive: true,
+    });
+    window.addEventListener("blur", resetPointerTarget);
+    if (followMode === "local") {
+      container.addEventListener("pointerleave", resetPointerTarget);
     }
 
+    let animationFrameId = 0;
+    let lastFrame = 0;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     function resize() {
       renderer.setSize(container.offsetWidth, container.offsetHeight);
-      program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height];
+      program.uniforms.uResolution.value = [
+        gl.canvas.width,
+        gl.canvas.height,
+        gl.canvas.width / gl.canvas.height,
+      ];
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(update);
     }
 
     const geometry = new Triangle(gl);
@@ -249,7 +289,13 @@ export default function EvilEye({
       fragment: fragmentShader,
       uniforms: {
         uTime: { value: 0 },
-        uResolution: { value: [gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height] },
+        uResolution: {
+          value: [
+            gl.canvas.width,
+            gl.canvas.height,
+            gl.canvas.width / gl.canvas.height,
+          ],
+        },
         uNoiseTexture: { value: noiseTexture },
         uPupilSize: { value: pupilSize },
         uIrisWidth: { value: irisWidth },
@@ -261,38 +307,73 @@ export default function EvilEye({
         uPupilFollow: { value: pupilFollow },
         uFlameSpeed: { value: flameSpeed },
         uEyeColor: { value: hexToVec3(eyeColor) },
-        uBgColor: { value: hexToVec3(backgroundColor) }
-      }
+        uBgColor: { value: hexToVec3(backgroundColor) },
+        uLight: { value: light ? 1 : 0 },
+      },
     });
 
-    window.addEventListener('resize', resize);
+    window.addEventListener("resize", resize);
     resize();
 
     const mesh = new Mesh(gl, { geometry, program });
     container.appendChild(gl.canvas);
 
-    let animationFrameId: number;
-
     function update(time: number) {
-      animationFrameId = requestAnimationFrame(update);
+      animationFrameId = 0;
+      if (document.hidden) return;
+      if (!paused && !reduceMotion.matches && time - lastFrame < 1000 / 30) {
+        animationFrameId = requestAnimationFrame(update);
+        return;
+      }
+      lastFrame = time;
       mouse.x += (mouse.tx - mouse.x) * 0.05;
       mouse.y += (mouse.ty - mouse.y) * 0.05;
       program.uniforms.uMouse.value = [mouse.x, mouse.y];
       program.uniforms.uTime.value = time * 0.001;
       renderer.render({ scene: mesh });
+      if (!paused && !reduceMotion.matches)
+        animationFrameId = requestAnimationFrame(update);
     }
-    animationFrameId = requestAnimationFrame(update);
+    const onVisibility = () => {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = 0;
+      if (!document.hidden) animationFrameId = requestAnimationFrame(update);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    reduceMotion.addEventListener("change", onVisibility);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', resize);
-      pointerTarget.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('blur', resetPointerTarget);
-      container.removeEventListener('pointerleave', resetPointerTarget);
+      document.removeEventListener("visibilitychange", onVisibility);
+      reduceMotion.removeEventListener("change", onVisibility);
+      window.removeEventListener("resize", resize);
+      pointerTarget.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("blur", resetPointerTarget);
+      container.removeEventListener("pointerleave", resetPointerTarget);
       container.removeChild(gl.canvas);
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
-  }, [eyeColor, intensity, pupilSize, irisWidth, glowIntensity, scale, noiseScale, pupilFollow, flameSpeed, backgroundColor, followMode]);
+  }, [
+    eyeColor,
+    intensity,
+    pupilSize,
+    irisWidth,
+    glowIntensity,
+    scale,
+    noiseScale,
+    pupilFollow,
+    flameSpeed,
+    backgroundColor,
+    followMode,
+    paused,
+    light,
+  ]);
 
-  return <div ref={containerRef} className={`evil-eye-container ${className}`.trim()} aria-hidden="true" />;
+  return (
+    <div
+      ref={containerRef}
+      className={`evil-eye-container ${className}`.trim()}
+      aria-hidden="true"
+    />
+  );
 }
